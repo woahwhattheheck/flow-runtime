@@ -14,7 +14,7 @@ export const expected = `
   import t from "flow-runtime";
 
   class Foo {
-    @t.decorate(t.ref(Map, t.string(), t.any()))
+    @t.decorate(t.ref("Map", t.string(), t.any()))
     bar = new Map();
 
     getValue(name) {
@@ -51,7 +51,7 @@ export const combined = `
     t.method("getValue", t.param("name", t.string()))
   ))
   class Foo {
-    @t.decorate(t.ref(Map, t.string(), t.any()))
+    @t.decorate(t.ref("Map", t.string(), t.any()))
     bar = new Map();
 
     getValue(name) {
