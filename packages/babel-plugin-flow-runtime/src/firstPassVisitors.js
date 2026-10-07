@@ -106,6 +106,8 @@ export default function firstPassVisitors (context: ConversionContext): Object {
 
       if (
         context.libraryImport === 'require' &&
+        path.parentPath.parentPath &&
+        path.parentPath.parentPath.isProgram() &&
         idPath.isIdentifier() &&
         init.isCallExpression() &&
         init.get('callee').isIdentifier({name: 'require'}) &&
