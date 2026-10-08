@@ -288,6 +288,38 @@ describe('Typed API', () => {
     ok(type.accepts(polyfilled));
   });
 
+  it('should reject a Map-shaped object with a throwing toStringTag getter', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const fake = {};
+    Object.defineProperty(fake, Symbol.toStringTag, {
+      get() {
+        throw new Error('attacker-supplied tag accessor');
+      }
+    });
+
+    no(type.accepts(fake));
+  });
+
+  it('should reject a Map polyfill with throwing method accessors', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const fake = {
+      [Symbol.toStringTag]: 'Map',
+      get get() {
+        throw new Error('attacker-supplied method accessor');
+      }
+    };
+
+    no(type.accepts(fake));
+  });
+
+  it('should reject a revoked Map Proxy without throwing from accepts', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const wrapped = Proxy.revocable(new Map([['valid', 123]]), {});
+    wrapped.revoke();
+
+    no(type.accepts(wrapped.proxy));
+  });
+
   it('should make a simple function type', () => {
     const type = t.fn(
       t.param('input', t.boolean()),
