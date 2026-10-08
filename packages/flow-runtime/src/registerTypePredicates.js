@@ -8,26 +8,29 @@ export default function registerTypePredicates (context: TypeContext) {
     if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
       return false;
     }
-    // An untrusted Proxy can throw even on instanceof (when revoked). A
-    // predicate should reject it instead of allowing an accessor to abort
-    // validation for the entire caller.
-    try {
-      if (input instanceof Map) {
-        return true;
-      }
-    }
-    catch (_) {
-      return false;
-    }
     // Native Map's internal-slot check works across realms and cannot be
-    // forged with Symbol.toStringTag.
+    // forged with prototype inheritance or Symbol.toStringTag.
     try {
       Map.prototype.has.call(input, null);
       return true;
     }
     catch (_) {
-      // Keep supporting Map polyfills, but accessors, revoked Proxies and
-      // hostile Symbol.toStringTag getters must produce false, not throw.
+      // Object.create(Map.prototype) and Proxy(new Map(), {}) both inherit
+      // the native prototype but do not expose Map's internal slots to the
+      // intrinsic methods. Do not let them fall through to the structural
+      // polyfill check merely because those methods are inherited.
+      try {
+        if (Map.prototype.isPrototypeOf(input)) {
+          return false;
+        }
+      }
+      catch (_) {
+        // Revoked/hostile Proxies can throw while walking the prototype chain.
+        return false;
+      }
+
+      // Keep supporting independent Map polyfills, but accessors, revoked
+      // Proxies and hostile Symbol.toStringTag getters must produce false.
       try {
         return Object.prototype.toString.call(input) === '[object Map]'
           && typeof input.get === 'function'
