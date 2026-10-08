@@ -108,6 +108,12 @@ export default function firstPassVisitors (context: ConversionContext): Object {
         context.libraryImport === 'require' &&
         path.parentPath.parentPath &&
         path.parentPath.parentPath.isProgram() &&
+        // Unlike imports, require bindings are not initialized before the
+        // program body runs. Earlier types/initializers may need the runtime.
+        path.key === 0 &&
+        path.parentPath.parentPath.get('body')
+          .slice(0, path.parentPath.key)
+          .every(statement => statement.isImportDeclaration()) &&
         idPath.isIdentifier() &&
         init.isCallExpression() &&
         init.get('callee').isIdentifier({name: 'require'}) &&

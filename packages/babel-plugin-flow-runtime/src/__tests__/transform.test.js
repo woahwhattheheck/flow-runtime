@@ -77,6 +77,17 @@ describe('transform', () => {
     `);
   });
 
+  it('should initialize the runtime before types preceding an existing require', () => {
+    testTransform(`
+      type User = { id: number };
+      const rt = require("flow-runtime");
+    `, {assert: true, annotate: false, libraryImport: 'require'}, `
+      const t = require("flow-runtime");
+      const User = t.type("User", t.object(t.property("id", t.number())));
+      const rt = require("flow-runtime");
+    `);
+  });
+
   it('should reuse an existing required runtime binding', () => {
     testTransform(`
       const rt = require("flow-runtime");
