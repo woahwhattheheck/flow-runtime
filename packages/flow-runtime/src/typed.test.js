@@ -274,6 +274,20 @@ describe('Typed API', () => {
     no(type.accepts(fake));
   });
 
+  it('should reject an object that only inherits Map.prototype', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const fake = Object.create(Map.prototype);
+
+    no(type.accepts(fake));
+  });
+
+  it('should reject a Proxy wrapper that lacks directly accessible Map slots', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const wrapped = new Proxy(new Map([['valid', 123]]), {});
+
+    no(type.accepts(wrapped));
+  });
+
   it('should allow an iterable Map polyfill that implements map operations', () => {
     const type = t.ref(Map, t.string(), t.number());
     const underlying = new Map([['valid', 123]]);
