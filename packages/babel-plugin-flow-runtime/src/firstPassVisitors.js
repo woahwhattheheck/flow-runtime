@@ -62,7 +62,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
                     ;
 
       const isFlowRuntime = path.node.importKind !== 'type'
-                          && source === 'flow-runtime'
+                          && source === context.libraryName
                           ;
 
       if (isReact) {
