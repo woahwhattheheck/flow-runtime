@@ -61,6 +61,22 @@ describe('transform', () => {
     `);
   });
 
+  it('should reuse an existing import of the configured custom runtime', () => {
+    testTransform(`
+      import rt from "./custom-flow-runtime";
+
+      type User = {
+        id: number;
+      };
+    `, {assert: true, annotate: false, libraryName: './custom-flow-runtime'}, `
+      import rt from "./custom-flow-runtime";
+
+      const User = rt.type("User", rt.object(
+        rt.property("id", rt.number())
+      ));
+    `);
+  });
+
   it('should reuse an existing required runtime binding', () => {
     testTransform(`
       const rt = require("flow-runtime");
