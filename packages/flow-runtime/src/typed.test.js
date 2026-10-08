@@ -267,6 +267,27 @@ describe('Typed API', () => {
     ok(type.accepts(map));
   });
 
+  it('should reject a spoofed Map toStringTag without Map behavior', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const fake = {[Symbol.toStringTag]: 'Map'};
+
+    no(type.accepts(fake));
+  });
+
+  it('should allow an iterable Map polyfill that implements map operations', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const underlying = new Map([['valid', 123]]);
+    const polyfilled = {
+      [Symbol.toStringTag]: 'Map',
+      get: key => underlying.get(key),
+      has: key => underlying.has(key),
+      entries: () => underlying.entries(),
+      [Symbol.iterator]: () => underlying.entries()
+    };
+
+    ok(type.accepts(polyfilled));
+  });
+
   it('should make a simple function type', () => {
     const type = t.fn(
       t.param('input', t.boolean()),
